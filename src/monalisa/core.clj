@@ -2,6 +2,7 @@
 
 (import '(javax.swing JFrame JLabel JTextField JButton)
   '(java.awt.event ActionListener)
+  '(java.awt Color)
   '(java.awt GridLayout))
 
 (defn show-image []
@@ -15,3 +16,44 @@
       (.setContentPane panel)
       (.setSize 300 300)
       (.setVisible true))))
+
+(defn random-color []
+  (Color. (rand-int 256) (rand-int 256) (rand-int 256) (rand-int 256)))
+
+
+(defn random-point [image-width image-height]
+  {
+    :x (rand-int image-width)
+    :y (rand-int image-height)
+    }
+  )
+
+(defn random-polygon [image-width image-height]
+  {
+    :points (repeatedly 3 #(random-point image-width image-height))
+    :color (random-color)
+    }
+  )
+
+(defn random-polygons [image-width image-height]
+  (repeatedly 10 #(random-polygon image-width image-height)))
+
+(defn draw-polygon [buffered-image polygon])
+
+(defn draw-polygons [buffered-image polygons]
+
+  (let [g2 (.getGraphics buffered-image)
+        width (.getWidth buffered-image)
+        height (.getHeight buffered-image)]
+
+    (.clearRect g2 0 0 width height)
+    (map draw-polygon buffered-image polygons))
+
+
+;  g2.clearRect(0, 0, w, h);
+;  for (Polygon p : getGenes()) {
+;                                 g2.setColor(p.getColor());
+;                                 g2.fill(p.getPath());
+;                                 }
+  )
+
