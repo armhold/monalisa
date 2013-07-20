@@ -19,7 +19,6 @@
 (defn show-image []
   (let [panel (proxy [javax.swing.JPanel] []
                 (paintComponent [g]
-                  (println "paintComponent")
                   (proxy-super paintComponent g)
                   (.drawImage g buffered-image
                     0 0 (.getWidth this) (.getHeight this) nil)))]
@@ -27,7 +26,8 @@
     (doto (javax.swing.JFrame.)
       (.setContentPane panel)
       (.setSize 300 300)
-      (.setVisible true))))
+      (.setVisible true)
+      (.toFront))))
 
 (defn random-color []
   (Color. (rand-int 256) (rand-int 256) (rand-int 256) (rand-int 256)))
@@ -58,16 +58,13 @@
 
     (.moveTo path (starting-point :x) (starting-point :y))
 
-    (println (str "got a total point count: " (count remaining-points)))
     (doseq [point remaining-points]
-      (println (str "lineto: " (point :x) (point :y)))
       (.lineTo path (point :x ) (point :y)))
 
     (.closePath path)
     path))
 
 (defn draw-polygon [graphics-2d polygon]
-  (println "draw-polygon")
   (.setColor graphics-2d (polygon :color))
   (.fill graphics-2d (path-from-polygon polygon)))
 
