@@ -95,11 +95,8 @@
 (defn compare-images [img1 img2]
   (let [int-array1 (image-as-int-array img1)
         int-array2 (image-as-int-array img2)]
+    (reduce + (map difference-squared int-array1 int-array2))))
 
-    (loop [i 0 result 0]
-      (if (= i (count int-array1))
-        result
-        (recur (inc i) (+ result (difference-squared (aget int-array1 i) (aget int-array2 i))))))))
 
 (defn doit []
   (init-images)
