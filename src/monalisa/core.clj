@@ -88,13 +88,18 @@
     (.getPixels raster 0 0 (.getWidth img) (.getHeight img) int-array)
     int-array))
 
+(defn difference-squared [val1 val2]
+  (let [difference (- val1 val2)]
+    (* difference difference)))
+
 (defn compare-images [img1 img2]
   (let [int-array1 (image-as-int-array img1)
         int-array2 (image-as-int-array img2)]
 
-    (map #(* (- %1  %2) (- %1 %2)) int-array1 int-array2))
-  )
-
+    (loop [i 0 result 0]
+      (if (= i (count int-array1))
+        result
+        (recur (inc i) (+ result (difference-squared (aget int-array1 i) (aget int-array2 i))))))))
 
 (defn doit []
   (init-images)
