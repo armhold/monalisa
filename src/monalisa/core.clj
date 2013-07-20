@@ -3,17 +3,16 @@
 (import '(javax.swing JFrame JLabel JTextField JButton)
   '(java.awt.event ActionListener)
   '(java.awt.geom GeneralPath)
-  '(java.awt Color)
-  '(java.awt GridLayout))
+  '(java.awt.image BufferedImage)
+  '(java.awt Color))
 
 (defn init-images []
-    (def reference-image (.getImage (javax.swing.ImageIcon. "src/monalisa/Rouen_Cathedrale.jpg")))
-    (def buffered-image nil)
-
+;  (def reference-image (.getImage (javax.swing.ImageIcon. "src/monalisa/Rouen_Cathedrale.jpg")))
+  (def reference-image (javax.imageio.ImageIO/read (java.io.File. "src/monalisa/Rouen_Cathedrale.jpg")))
   (let [width  (/ (.getWidth reference-image) 2)
         height (/ (.getHeight reference-image) 2)]
 
-    (def buffered-image (java.awt.image.BufferedImage. width height java.awt.image.BufferedImage/TYPE_4BYTE_ABGR))))
+    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))))
 
 
 (defn show-image []
@@ -80,6 +79,22 @@
         (draw-polygon g2 polygon))
 
       (.repaint the-panel))))
+
+(defn image-as-int-array [img]
+  (let [raster (.getData img)
+        byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
+        int-array (int-array byte-count)]
+
+    (.getPixels raster 0 0 (.getWidth img) (.getHeight img) int-array)
+    int-array))
+
+(defn compare-images [img1 img2]
+  (let [int-array1 (image-as-int-array img1)
+        int-array2 (image-as-int-array img2)]
+
+    (map #(* (- %1  %2) (- %1 %2)) int-array1 int-array2))
+  )
+
 
 (defn doit []
   (init-images)
