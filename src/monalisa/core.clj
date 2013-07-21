@@ -1,10 +1,12 @@
-(ns monalisa.core)
+(ns monalisa.core
+  "core monalisa code"
+  (import
+    (javax.swing JFrame JLabel JTextField JButton)
+    (java.awt.event ActionListener)
+    (java.awt.geom GeneralPath)
+    (java.awt.image BufferedImage)
+    (java.awt Color)))
 
-(import '(javax.swing JFrame JLabel JTextField JButton)
-  '(java.awt.event ActionListener)
-  '(java.awt.geom GeneralPath)
-  '(java.awt.image BufferedImage)
-  '(java.awt Color))
 
 (defn init-images []
 ;  (def reference-image (.getImage (javax.swing.ImageIcon. "src/monalisa/Rouen_Cathedrale.jpg")))
