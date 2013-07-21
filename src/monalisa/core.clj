@@ -1,15 +1,15 @@
 (ns monalisa.core
   "core monalisa code"
-  (:use [monalisa.graphics])
-
-  (import
-    (javax.swing JFrame JLabel JTextField JButton)
-    (java.awt.event ActionListener)
-    (java.awt.geom GeneralPath)
-    (java.awt.image BufferedImage)
-    (java.awt Color)))
+  (:use [monalisa.graphics]))
 
 (println (str "buffered-image is: " buffered-image))
+
+
+(def MAX-ITERATIONS 100000)
+(def POLYGON-COUNT 200)    ; # of polygons for a given image
+(def POPULATION-COUNT 10)
+(def candidates)
+(def current-best)
 
 (defn random-color []
   {
@@ -34,12 +34,28 @@
     }
   )
 
-(defn random-polygons [image-width image-height]
-  (into [] (repeatedly 100 #(random-polygon image-width image-height))))
+(defn random-polygons
+  ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
+  ([image-width image-height] into [] (repeatedly 100 #(random-polygon image-width image-height))))
+
+
+(defn create-random-population []
+  (into [] (repeatedly POPULATION-COUNT #(random-polygons))))
+
+(defn evaluate-candidate [candidate]
+  (draw-polygons candidate)
+  (current-image-difference))
+
+(defn run []
+  (dotimes [n MAX-ITERATIONS]
+    (let [population (create-random-population)
+          best-score (reduce min (map evaluate-candidate population))]
+      (println (str "best population score: " best-score)))))
 
 
 (defn doit []
   (init-images)
   (show-image)
-  (draw-polygons (random-polygons (.getWidth buffered-image) (.getHeight buffered-image))))
+  (draw-polygons (random-polygons)))
+
 

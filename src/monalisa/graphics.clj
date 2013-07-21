@@ -81,3 +81,6 @@
         int-array2 (image-as-int-array img2)]
     (reduce + (map difference-squared int-array1 int-array2))))
 
+
+(defn current-image-difference []
+  (compare-images reference-image buffered-image))
