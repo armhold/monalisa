@@ -12,8 +12,13 @@
 (println (str "buffered-image is: " buffered-image))
 
 (defn random-color []
-  (Color. (rand-int 256) (rand-int 256) (rand-int 256) (rand-int 256)))
-
+  {
+    :r (rand-int 256)
+    :g (rand-int 256)
+    :b (rand-int 256)
+    :a (rand-int 256)
+    }
+  )
 
 (defn random-point [image-width image-height]
   {
@@ -46,8 +51,11 @@
     (.closePath path)
     path))
 
+(defn to-java-color [color]
+  (Color. (:r color) (:g color) (:b color) (:a color)))
+
 (defn draw-polygon [graphics-2d polygon]
-  (.setColor graphics-2d (polygon :color))
+  (.setColor graphics-2d (to-java-color (polygon :color)))
   (.fill graphics-2d (path-from-polygon polygon)))
 
 (defn draw-polygons
