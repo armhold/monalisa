@@ -2,9 +2,10 @@
   "core monalisa code"
   (:use [monalisa.graphics]))
 
-(def MAX-ITERATIONS 100000)
-(def POLYGON-COUNT 100)    ; # of polygons for a given image
+(def MAX-GENERATIONS 1000000)
+(def POLYGON-COUNT 250)    ; # of polygons for a given image
 (def POPULATION-COUNT 10)
+(def MUTATION-RATE 0.005)
 
 (defn random-color []
   {
@@ -55,11 +56,19 @@
 (defn find-worst-index [scores]
   (first (apply max-key second (map-indexed vector scores))))
 
+(defn possibly-mutate-polygon [polygon]
+  (if (< (rand) MUTATION-RATE)
+    (do
+      (println "mutating!")
+      (random-polygon (.getWidth buffered-image) (.getHeight buffered-image)))
+    polygon))
+
+
 (defn crossover [parent1-polygons parent2-polygons]
   (let [crossover (rand-int POLYGON-COUNT)]
     (loop [n 0 result []]
       (if (< n POLYGON-COUNT)
-        (recur (inc n) (conj result (nth (if (< n crossover) parent1-polygons parent2-polygons) n)))
+        (recur (inc n) (conj result (possibly-mutate-polygon (nth (if (< n crossover) parent1-polygons parent2-polygons) n))))
         result))))
 
 (defn mate [parent1 parent2]
@@ -73,12 +82,13 @@
         random-individual (population (rand-int POPULATION-COUNT))
         best-individual (population index-of-best)
         new-individual (mate best-individual random-individual)]
+    (println (str "ousting: " index-of-worst))
     (assoc population index-of-worst new-individual)))
 
 (defn run []
   (loop [n 0 population (create-random-population)]
-    (when (< n MAX-ITERATIONS)
-      (println (str "iteration: " n))
+    (when (< n MAX-GENERATIONS)
+      (println (str "generation: " n))
       (recur (inc n) (replace-worst population))))
   (println "done"))
 

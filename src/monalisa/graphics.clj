@@ -27,7 +27,7 @@
     (def the-panel panel) ; surely this is not the proper way to set a "member" field in clojure...
     (doto (javax.swing.JFrame.)
       (.setContentPane panel)
-      (.setSize 300 300)
+      (.setSize (.getWidth buffered-image) (.getHeight buffered-image))
       (.setVisible true)
       (.toFront))))
 
