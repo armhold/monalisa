@@ -33,35 +33,41 @@
   ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
   ([image-width image-height] into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))
 
-
-(defn create-random-population []
-  (into [] (repeatedly POPULATION-COUNT #(random-polygons))))
-
-(defn evaluate-candidate [candidate]
-  (draw-polygons candidate)
+(defn evaluate-candidate [polygons]
+  (draw-polygons polygons)
   (current-image-difference))
 
-; return list of scores in order of appearance in population
-(defn evaluate-candidates [population]
-  (map evaluate-candidate population))
+(defn new-individual
+  ([] (new-individual (random-polygons)))
+  ([polygons] {
+      :polygons polygons
+      :score (evaluate-candidate polygons)
+      }))
+
+(defn create-random-population []
+  (into [] (repeatedly POPULATION-COUNT #(new-individual))))
+
 
 ; find index of best scoring candidate in the vector of (pre-computed) scores
-(defn find-best-index [population-scores]
-  (first (apply min-key second (map-indexed vector population-scores))))
+(defn find-best-index [scores]
+  (first (apply min-key second (map-indexed vector scores))))
 
-(defn find-worst-index [population-scores]
-  (first (apply max-key second (map-indexed vector population-scores))))
+(defn find-worst-index [scores]
+  (first (apply max-key second (map-indexed vector scores))))
 
-(defn mate [parent1 parent2]
+(defn crossover [parent1-polygons parent2-polygons]
   (let [crossover (rand-int POLYGON-COUNT)]
     (loop [n 0 result []]
       (if (< n POLYGON-COUNT)
-        (recur (inc n) (conj result (nth (if (< n crossover) parent1 parent2) n)))
+        (recur (inc n) (conj result (nth (if (< n crossover) parent1-polygons parent2-polygons) n)))
         result))))
+
+(defn mate [parent1 parent2]
+  (new-individual (crossover (:polygons parent1) (:polygons parent2))))
 
 
 (defn replace-worst [population]
-  (let [scores (evaluate-candidates population)
+  (let [scores (map #(:score %) population)
         index-of-best (find-best-index scores)
         index-of-worst (find-worst-index scores)
         random-individual (population (rand-int POPULATION-COUNT))
