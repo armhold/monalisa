@@ -2,14 +2,9 @@
   "core monalisa code"
   (:use [monalisa.graphics]))
 
-(println (str "buffered-image is: " buffered-image))
-
-
 (def MAX-ITERATIONS 100000)
-(def POLYGON-COUNT 200)    ; # of polygons for a given image
+(def POLYGON-COUNT 100)    ; # of polygons for a given image
 (def POPULATION-COUNT 10)
-(def candidates)
-(def current-best)
 
 (defn random-color []
   {
@@ -36,7 +31,7 @@
 
 (defn random-polygons
   ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
-  ([image-width image-height] into [] (repeatedly 100 #(random-polygon image-width image-height))))
+  ([image-width image-height] into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))
 
 
 (defn create-random-population []
@@ -46,16 +41,21 @@
   (draw-polygons candidate)
   (current-image-difference))
 
-(defn run []
-  (dotimes [n MAX-ITERATIONS]
-    (let [population (create-random-population)
-          best-score (reduce min (map evaluate-candidate population))]
-      (println (str "best population score: " best-score)))))
+(defn replace-worst [population]
+  (println (str "replacing worst in: " population))
 
+  (let [worst (apply min-key evaluate-candidate population)
+        population (remove #(= worst %) population)
+        population (conj population (random-polygons))]
+    population))
+
+(defn run []
+  (loop [n 0 population (create-random-population)]
+    (when (< n MAX-ITERATIONS)
+      (recur (inc n) (replace-worst population)))))
 
 (defn doit []
   (init-images)
   (show-image)
   (draw-polygons (random-polygons)))
-
 
