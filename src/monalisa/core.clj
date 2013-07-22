@@ -41,6 +41,18 @@
   (draw-polygons candidate)
   (current-image-difference))
 
+; return list of scores in order of appearance in population
+(defn evaluate-candidates [population]
+  (map evaluate-candidate population))
+
+(defn mate [parent1 parent2]
+  (let [crossover (rand-int POLYGON-COUNT)]
+    (loop [n 0 result []]
+      (if (< n POLYGON-COUNT)
+        (recur (inc n) (conj result (nth (if (< n crossover) parent1 parent2) n)))
+        result))))
+
+
 (defn replace-worst [population]
   (println (str "replacing worst in: " population))
 
