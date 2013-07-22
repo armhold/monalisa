@@ -45,6 +45,13 @@
 (defn evaluate-candidates [population]
   (map evaluate-candidate population))
 
+; find index of best scoring candidate in the vector of (pre-computed) scores
+(defn find-best-index [population-scores]
+  (first (apply min-key second (map-indexed vector population-scores))))
+
+(defn find-worst-index [population-scores]
+  (first (apply max-key second (map-indexed vector population-scores))))
+
 (defn mate [parent1 parent2]
   (let [crossover (rand-int POLYGON-COUNT)]
     (loop [n 0 result []]
@@ -54,17 +61,20 @@
 
 
 (defn replace-worst [population]
-  (println (str "replacing worst in: " population))
-
-  (let [worst (apply min-key evaluate-candidate population)
-        population (remove #(= worst %) population)
-        population (conj population (random-polygons))]
-    population))
+  (let [scores (evaluate-candidates population)
+        index-of-best (find-best-index scores)
+        index-of-worst (find-worst-index scores)
+        random-individual (population (rand-int POPULATION-COUNT))
+        best-individual (population index-of-best)
+        new-individual (mate best-individual random-individual)]
+    (assoc population index-of-worst new-individual)))
 
 (defn run []
   (loop [n 0 population (create-random-population)]
     (when (< n MAX-ITERATIONS)
-      (recur (inc n) (replace-worst population)))))
+      (println (str "iteration: " n))
+      (recur (inc n) (replace-worst population))))
+  (println "done"))
 
 (defn doit []
   (init-images)
