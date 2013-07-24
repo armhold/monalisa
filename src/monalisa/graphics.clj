@@ -1,7 +1,7 @@
 (ns monalisa.graphics
   "monalisa graphics/drawing code"
   (import
-    (javax.swing JFrame JLabel JTextField JButton)
+    (javax.swing JFrame JLabel JTextField JButton WindowConstants)
     (java.awt.event ActionListener)
     (java.awt.geom GeneralPath)
     (java.awt.image BufferedImage)
@@ -11,9 +11,9 @@
 (def buffered-image)
 
 (defn init-images []
-  (def reference-image (javax.imageio.ImageIO/read (java.io.File. "src/monalisa/Rouen_Cathedrale.jpg")))
-  (let [width  (/ (.getWidth reference-image) 2)
-        height (/ (.getHeight reference-image) 2)]
+  (def reference-image (javax.imageio.ImageIO/read (java.io.File. "src/monalisa/mona_lisa_crop.jpg")))
+  (let [width  (.getWidth reference-image)
+        height (.getHeight reference-image)]
 
     (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))))
 
@@ -27,6 +27,7 @@
     (def the-panel panel) ; surely this is not the proper way to set a "member" field in clojure...
     (doto (javax.swing.JFrame.)
       (.setContentPane panel)
+      (.setDefaultCloseOperation WindowConstants/EXIT_ON_CLOSE)
       (.setSize (.getWidth buffered-image) (.getHeight buffered-image))
       (.setVisible true)
       (.toFront))))
@@ -54,15 +55,15 @@
   (.fill graphics-2d (path-from-polygon polygon)))
 
 (defn draw-polygons [polygons]
-    (let [g2 (.getGraphics buffered-image)
-          width (.getWidth buffered-image)
-          height (.getHeight buffered-image)]
+  (let [g2 (.getGraphics buffered-image)
+        width (.getWidth buffered-image)
+        height (.getHeight buffered-image)]
 
-      (.clearRect g2 0 0 width height)
-      (doseq [polygon polygons]
-        (draw-polygon g2 polygon))
+    (.clearRect g2 0 0 width height)
+    (doseq [polygon polygons]
+      (draw-polygon g2 polygon))
 
-      (.repaint the-panel)))
+    (.repaint the-panel)))
 
 (defn image-as-int-array [img]
   (let [raster (.getData img)

@@ -5,7 +5,9 @@
 (def MAX-GENERATIONS 1000000)
 (def POLYGON-COUNT 250)    ; # of polygons for a given image
 (def POPULATION-COUNT 10)
-(def MUTATION-RATE 0.005)
+(def MUTATION-RATE 0.01)
+(def POINT-MUTATION-MAX-DISTANCE 5)
+(def COLOR-MUTATION-MAX-DISTANCE 5)
 
 (defn random-color []
   {
@@ -56,13 +58,62 @@
 (defn find-worst-index [scores]
   (first (apply max-key second (map-indexed vector scores))))
 
+(defn find-best-individual [population]
+  (let [scores (map #(:score %) population)
+        index-of-best (find-best-index scores)
+        best-individual (population index-of-best)]
+    best-individual))
+
+(defn image-width []
+  (.getWidth buffered-image))
+
+(defn image-height []
+  (.getHeight buffered-image))
+
+(defn random-direction []
+  (if (= 0 (rand-int 2)) 1 -1)) ; 50% chance negative
+
+(defn move-by-random-delta [initial-val max-delta max-val]
+  (mod (+ initial-val (* (rand-int max-delta) (random-direction))) max-val))
+
+(defn nearby-point [point]
+  {
+    :x (move-by-random-delta (:x point) POINT-MUTATION-MAX-DISTANCE (image-width))
+    :y (move-by-random-delta (:y point) POINT-MUTATION-MAX-DISTANCE (image-height))
+  })
+
+(defn nearby-color [color]
+  {
+    :r (move-by-random-delta (:r color) COLOR-MUTATION-MAX-DISTANCE 256)
+    :g (move-by-random-delta (:g color) COLOR-MUTATION-MAX-DISTANCE 256)
+    :b (move-by-random-delta (:b color) COLOR-MUTATION-MAX-DISTANCE 256)
+    :a (move-by-random-delta (:a color) COLOR-MUTATION-MAX-DISTANCE 256)
+  })
+
+(defn mutate-polygon [polygon]
+  {
+    :points (map #(nearby-point %) (:points polygon))
+    :color (nearby-color (:color polygon))
+  })
+
+
 (defn possibly-mutate-polygon [polygon]
   (if (< (rand) MUTATION-RATE)
     (do
-      (println "mutating!")
+;      (println "mutating!")
       (random-polygon (.getWidth buffered-image) (.getHeight buffered-image)))
     polygon))
 
+(defn mutate-individual [individual]
+  (let [polygons (map #(mutate-polygon %) (:polygons individual))]
+    {
+      :polygons polygons
+      :score (evaluate-candidate polygons)
+    }))
+
+; create a new population based on the best individual
+(defn new-population-from-mutated-best [population best-individual]
+  (vec (map (fn [_] (mutate-individual best-individual)) population)))
 
 (defn crossover [parent1-polygons parent2-polygons]
   (let [crossover (rand-int POLYGON-COUNT)]
@@ -74,7 +125,6 @@
 (defn mate [parent1 parent2]
   (new-individual (crossover (:polygons parent1) (:polygons parent2))))
 
-
 (defn replace-worst [population]
   (let [scores (map #(:score %) population)
         index-of-best (find-best-index scores)
@@ -82,18 +132,34 @@
         random-individual (population (rand-int POPULATION-COUNT))
         best-individual (population index-of-best)
         new-individual (mate best-individual random-individual)]
-    (println (str "ousting: " index-of-worst))
+;    (println (str "ousting: " index-of-worst))
     (assoc population index-of-worst new-individual)))
 
 (defn run []
   (loop [n 0 population (create-random-population)]
     (when (< n MAX-GENERATIONS)
-      (println (str "generation: " n))
+      (if (= 0 (mod n 100)) (println (str "generation: " n)))
       (recur (inc n) (replace-worst population))))
   (println "done"))
+
+(defn run2 []
+  (loop [n 0 population (create-random-population)]
+    (when (< n MAX-GENERATIONS)
+;      (if (= 0 (mod n 100)) (println (str "generation: " n)))
+      (println (str "generation: " n))
+      (recur (inc n) (new-population-from-mutated-best population (find-best-individual population)))))
+  (println "done"))
+
 
 (defn doit []
   (init-images)
   (show-image)
   (draw-polygons (random-polygons)))
 
+
+(defn -main []
+  (init-images)
+  (show-image)
+  (draw-polygons (random-polygons))
+  (run2)
+  )
