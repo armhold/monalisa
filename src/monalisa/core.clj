@@ -3,7 +3,8 @@
   (:use [monalisa.graphics]))
 
 (def MAX-GENERATIONS 1000000)
-(def POLYGON-COUNT 250)    ; # of polygons for a given image
+(def POLYGON-COUNT 50)    ; # of polygons for a given image
+(def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
 (def MUTATION-RATE 0.01)
 (def POINT-MUTATION-MAX-DISTANCE 5)
@@ -26,11 +27,11 @@
   )
 
 (defn random-polygon [image-width image-height]
-  {
-    :points (repeatedly 3 #(random-point image-width image-height))
-    :color (random-color)
-    }
-  )
+  (let [point-count (+ 1 (rand-int POINTS-PER-POLYGON))]
+    {
+      :points (repeatedly point-count #(random-point image-width image-height))
+      :color (random-color)
+      }))
 
 (defn random-polygons
   ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
@@ -74,7 +75,8 @@
   (if (= 0 (rand-int 2)) 1 -1)) ; 50% chance negative
 
 (defn move-by-random-delta [initial-val max-delta max-val]
-  (mod (+ initial-val (* (rand-int max-delta) (random-direction))) max-val))
+  (let [amount-to-move (+ 1 (rand-int max-delta))]
+    (mod (+ initial-val (* amount-to-move (random-direction))) max-val)))
 
 (defn nearby-point [point]
   {
