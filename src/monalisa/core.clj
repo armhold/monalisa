@@ -26,8 +26,11 @@
     }
   )
 
+(defn random-int-between [start-num end-num]
+  (+ start-num (rand-int (inc (- end-num start-num)))))
+
 (defn random-polygon [image-width image-height]
-  (let [point-count (+ 1 (rand-int POINTS-PER-POLYGON))]
+  (let [point-count (random-int-between 3 POINTS-PER-POLYGON)]
     {
       :points (repeatedly point-count #(random-point image-width image-height))
       :color (random-color)
@@ -35,7 +38,7 @@
 
 (defn random-polygons
   ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
-  ([image-width image-height] into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))
+  ([image-width image-height] (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height)))))
 
 (defn evaluate-candidate [polygons]
   (draw-polygons polygons)
@@ -106,12 +109,29 @@
       (random-polygon (.getWidth buffered-image) (.getHeight buffered-image)))
     polygon))
 
+
+(defn random-mutation-indices [count]
+  [
+    (rand-int (+ count 1))
+    (rand-int (+ count 1))
+    (rand-int (+ count 1))
+  ])
+
+(defn mutate-random-polygon [polygons]
+  (let [mutation-index (rand-int (count polygons))
+        mutated-result (assoc polygons mutation-index (mutate-polygon (polygons mutation-index)))]
+    (vec mutated-result)))
+
+; mutate 3 random polygons in the given individual
 (defn mutate-individual [individual]
-  (let [polygons (map #(mutate-polygon %) (:polygons individual))]
-    {
-      :polygons polygons
-      :score (evaluate-candidate polygons)
-    }))
+  (let [polygons (:polygons individual)
+        polygons (mutate-random-polygon polygons)
+        polygons (mutate-random-polygon polygons)
+        polygons (mutate-random-polygon polygons)]
+      {
+        :polygons polygons
+        :score (evaluate-candidate polygons)
+      }))
 
 ; create a new population based on the best individual
 (defn new-population-from-mutated-best [population best-individual]

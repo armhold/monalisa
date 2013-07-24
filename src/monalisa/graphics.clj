@@ -7,14 +7,16 @@
     (java.awt.image BufferedImage)
     (java.awt Color)))
 
-; forward reference
+; forward references
 (def buffered-image)
+(def offscreen-image)
 
 (defn init-images []
   (def reference-image (javax.imageio.ImageIO/read (java.io.File. "src/monalisa/mona_lisa_crop.jpg")))
   (let [width  (.getWidth reference-image)
         height (.getHeight reference-image)]
 
+    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
     (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))))
 
 
