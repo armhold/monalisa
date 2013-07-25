@@ -7,7 +7,7 @@
 (def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
 (def MUTATION-RATE 0.01)
-(def POINT-MUTATION-MAX-DISTANCE 5)
+(def POINT-MUTATION-MAX-DISTANCE 10)
 (def COLOR-MUTATION-MAX-DISTANCE 5)
 
 (defn random-color []
@@ -32,13 +32,13 @@
 (defn random-polygon [image-width image-height]
   (let [point-count (random-int-between 3 POINTS-PER-POLYGON)]
     {
-      :points (repeatedly point-count #(random-point image-width image-height))
+      :points (vec (repeatedly point-count #(random-point image-width image-height)))
       :color (random-color)
       }))
 
 (defn random-polygons
   ([] (random-polygons (.getWidth buffered-image) (.getHeight buffered-image)))
-  ([image-width image-height] (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height)))))
+  ([image-width image-height] (vec (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))))
 
 (defn evaluate-candidate [polygons]
   (draw-polygons polygons)
@@ -52,7 +52,7 @@
       }))
 
 (defn create-random-population []
-  (into [] (repeatedly POPULATION-COUNT #(new-individual))))
+  (vec (into [] (repeatedly POPULATION-COUNT #(new-individual)))))
 
 
 ; find index of best scoring candidate in the vector of (pre-computed) scores
@@ -95,11 +95,27 @@
     :a (move-by-random-delta (:a color) COLOR-MUTATION-MAX-DISTANCE 256)
   })
 
+(defn mutate-point [points index]
+  (vec (assoc points index (nearby-point (points index)))))
+
 (defn mutate-polygon [polygon]
+
+  (let [points (:points polygon)
+        point-count (count points)
+        locus (rand-int (+ 2 point-count))
+        points (if (< locus point-count) (mutate-point points locus) points)
+        color (:color polygon)
+        color (if (>= locus point-count) (nearby-color color) color)
+        ]
+
+  ; TODO: change only ONE of the following:
+  ; 1. a single point
+  ; 2. polygon color
+  ; 3. polygon alpha
   {
-    :points (map #(nearby-point %) (:points polygon))
-    :color (nearby-color (:color polygon))
-  })
+    :points points
+    :color color
+  }))
 
 
 (defn possibly-mutate-polygon [polygon]
@@ -124,6 +140,7 @@
 
 ; mutate 3 random polygons in the given individual
 (defn mutate-individual [individual]
+
   (let [polygons (:polygons individual)
         polygons (mutate-random-polygon polygons)
         polygons (mutate-random-polygon polygons)
@@ -135,7 +152,7 @@
 
 
 (defn new-population-from-progenitor [progenitor]
-  (into [] (repeatedly POPULATION-COUNT #(mutate-individual progenitor))))
+  (vec (into [] (repeatedly POPULATION-COUNT #(mutate-individual progenitor)))))
 
 ; create a new population based on the best individual
 (defn new-population-from-mutated-best [population best-individual]
