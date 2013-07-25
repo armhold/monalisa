@@ -41,8 +41,9 @@
   ([image-width image-height] (vec (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))))
 
 (defn evaluate-candidate [polygons]
-  (draw-polygons polygons)
-  (current-image-difference))
+  (let [scratch-image (new-buffered-image)]
+    (draw-polygons polygons scratch-image)
+    (compare-image-to-reference scratch-image)))
 
 (defn new-individual
   ([] (new-individual (random-polygons)))
@@ -209,6 +210,10 @@
 (defn temperature [generation]
   (- MAX-GENERATIONS generation))
 
+(defn update-display [best-candidate]
+  (draw-polygons (:polygons best-candidate) buffered-image)
+  (.repaint the-panel))
+
 (defn run3 []
   (loop [generation 0 progenitor (new-individual)]
     (when (< generation MAX-GENERATIONS)
@@ -226,9 +231,11 @@
                              progenitor)
             ]
         (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
+        (update-display best-of-population)
         (recur (inc generation) new-progenitor))))
 
   (println "done"))
+
 
 
 (defn doit []
@@ -240,6 +247,6 @@
 (defn -main []
   (init-images)
   (show-image)
-  (draw-polygons (random-polygons))
+;  (draw-polygons (random-polygons))
   (run3)
   )

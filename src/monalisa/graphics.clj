@@ -11,13 +11,31 @@
 (def buffered-image)
 (def offscreen-image)
 
+(defn image-as-int-array [img]
+  (let [raster (.getData img)
+        byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
+        int-array (int-array byte-count)]
+
+    (.getPixels raster 0 0 (.getWidth img) (.getHeight img) int-array)
+    int-array))
+
+(defn difference-squared [val1 val2]
+  (let [difference (- val1 val2)]
+    (* difference difference)))
+
 (defn init-images []
   (def reference-image (javax.imageio.ImageIO/read (java.io.File. "src/monalisa/mona_lisa_crop.jpg")))
   (let [width  (.getWidth reference-image)
         height (.getHeight reference-image)]
 
     (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
-    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))))
+    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR)))
+    (def target-width (.getWidth reference-image))
+    (def target-height (.getHeight reference-image))
+    (def reference-image-int-array (image-as-int-array reference-image)))
+
+(defn new-buffered-image []
+  (BufferedImage. target-width target-height BufferedImage/TYPE_INT_BGR))
 
 
 (defn show-image []
@@ -30,7 +48,7 @@
     (doto (javax.swing.JFrame.)
       (.setContentPane panel)
       (.setDefaultCloseOperation WindowConstants/EXIT_ON_CLOSE)
-      (.setSize (.getWidth buffered-image) (.getHeight buffered-image))
+      (.setSize target-width target-height)
       (.setVisible true)
       (.toFront))))
 
@@ -56,34 +74,17 @@
   (.setColor graphics-2d (to-java-color (polygon :color)))
   (.fill graphics-2d (path-from-polygon polygon)))
 
-(defn draw-polygons [polygons]
-  (let [g2 (.getGraphics buffered-image)
-        width (.getWidth buffered-image)
-        height (.getHeight buffered-image)]
+(defn draw-polygons [polygons image]
+  (let [g2 (.getGraphics image)
+        width (.getWidth image)
+        height (.getHeight image)]
 
     (.clearRect g2 0 0 width height)
     (doseq [polygon polygons]
-      (draw-polygon g2 polygon))
+      (draw-polygon g2 polygon))))
 
-    (.repaint the-panel)))
+;    (.repaint the-panel)))
 
-(defn image-as-int-array [img]
-  (let [raster (.getData img)
-        byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
-        int-array (int-array byte-count)]
-
-    (.getPixels raster 0 0 (.getWidth img) (.getHeight img) int-array)
-    int-array))
-
-(defn difference-squared [val1 val2]
-  (let [difference (- val1 val2)]
-    (* difference difference)))
-
-(defn compare-images [img1 img2]
-  (let [int-array1 (image-as-int-array img1)
-        int-array2 (image-as-int-array img2)]
-    (reduce + (map difference-squared int-array1 int-array2))))
-
-
-(defn current-image-difference []
-  (compare-images reference-image buffered-image))
+(defn compare-image-to-reference [image]
+  (let [int-array (image-as-int-array image)]
+    (reduce + (map difference-squared reference-image-int-array int-array))))
