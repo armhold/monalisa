@@ -2,7 +2,7 @@
   "core monalisa code"
   (:use [monalisa.graphics]))
 
-(def MAX-GENERATIONS 1000000)
+(def MAX-GENERATIONS 100000)
 (def POLYGON-COUNT 50)    ; # of polygons for a given image
 (def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
@@ -133,6 +133,10 @@
         :score (evaluate-candidate polygons)
       }))
 
+
+(defn new-population-from-progenitor [progenitor]
+  (into [] (repeatedly POPULATION-COUNT #(mutate-individual progenitor))))
+
 ; create a new population based on the best individual
 (defn new-population-from-mutated-best [population best-individual]
   (vec (map (fn [_] (mutate-individual best-individual)) population)))
@@ -173,6 +177,31 @@
   (println "done"))
 
 
+(defn temperature [generation]
+  (- MAX-GENERATIONS generation))
+
+(defn run3 []
+  (loop [generation 0 progenitor (new-individual)]
+    (when (< generation MAX-GENERATIONS)
+
+      (let [population (new-population-from-progenitor progenitor)
+            best-of-population (find-best-individual population)
+            diff (- (:score progenitor) (:score best-of-population))
+            temp (temperature generation)
+            p  (Math/exp (/ diff temp))
+            chance (rand)
+            new-progenitor (if
+                             (or (< (:score best-of-population) (:score progenitor))
+                                 (< chance p))
+                             best-of-population
+                             progenitor)
+            ]
+        (println (str "generation: " generation ", temperature: " temp ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
+        (recur (inc generation) new-progenitor))))
+
+  (println "done"))
+
+
 (defn doit []
   (init-images)
   (show-image)
@@ -183,5 +212,5 @@
   (init-images)
   (show-image)
   (draw-polygons (random-polygons))
-  (run2)
+  (run3)
   )
