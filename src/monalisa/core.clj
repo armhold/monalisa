@@ -7,7 +7,7 @@
 (def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
 (def MUTATION-RATE 0.01)
-(def POINT-MUTATION-MAX-DISTANCE 10)
+(def POINT-MUTATION-MAX-DISTANCE 50)
 (def COLOR-MUTATION-MAX-DISTANCE 5)
 
 (defn random-color []
@@ -82,16 +82,27 @@
     (mod (+ initial-val (* amount-to-move (random-direction))) max-val)))
 
 (defn nearby-point [point]
+;  (println "nearby-point")
   {
     :x (move-by-random-delta (:x point) POINT-MUTATION-MAX-DISTANCE (image-width))
     :y (move-by-random-delta (:y point) POINT-MUTATION-MAX-DISTANCE (image-height))
   })
 
 (defn nearby-color [color]
+;  (println "nearby-color")
   {
     :r (move-by-random-delta (:r color) COLOR-MUTATION-MAX-DISTANCE 256)
     :g (move-by-random-delta (:g color) COLOR-MUTATION-MAX-DISTANCE 256)
     :b (move-by-random-delta (:b color) COLOR-MUTATION-MAX-DISTANCE 256)
+    :a (move-by-random-delta (:a color) COLOR-MUTATION-MAX-DISTANCE 256)
+  })
+
+(defn nearby-alpha [color]
+;  (println "nearby-alpha")
+  {
+    :r (:r color)
+    :g (:g color)
+    :b (:b color)
     :a (move-by-random-delta (:a color) COLOR-MUTATION-MAX-DISTANCE 256)
   })
 
@@ -105,7 +116,8 @@
         locus (rand-int (+ 2 point-count))
         points (if (< locus point-count) (mutate-point points locus) points)
         color (:color polygon)
-        color (if (>= locus point-count) (nearby-color color) color)
+        color (if (= locus point-count) (nearby-color color) color)
+        color (if (= locus (+ 1 point-count)) (nearby-alpha color) color)
         ]
 
   ; TODO: change only ONE of the following:
@@ -213,7 +225,7 @@
                              best-of-population
                              progenitor)
             ]
-        (println (str "generation: " generation ", temperature: " temp ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
+        (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
         (recur (inc generation) new-progenitor))))
 
   (println "done"))
