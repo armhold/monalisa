@@ -41,7 +41,8 @@
   ([image-width image-height] (vec (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))))
 
 (defn evaluate-candidate [polygons]
-  (let [scratch-image (new-buffered-image)]
+;  (let [scratch-image (new-buffered-image)]
+  (let [scratch-image buffered-image]
     (draw-polygons polygons scratch-image)
     (compare-image-to-reference scratch-image)))
 

@@ -29,8 +29,8 @@
   (let [width  (.getWidth reference-image)
         height (.getHeight reference-image)]
 
-    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_4BYTE_ABGR))
-    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_4BYTE_ABGR)))
+    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
+    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR)))
     (def target-width (.getWidth reference-image))
     (def target-height (.getHeight reference-image))
     (def reference-image-int-array (image-as-int-array reference-image)))
@@ -76,7 +76,6 @@
 
 (defn draw-polygon [graphics-2d polygon]
   (.setColor graphics-2d (to-java-color (polygon :color)))
-  (.setRenderingHint graphics-2d RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_ON)
   (.fill graphics-2d (path-from-polygon polygon)))
 
 (defn draw-polygons [polygons image]
@@ -85,10 +84,11 @@
         height (.getHeight image)]
 
     (.clearRect g2 0 0 width height)
+      (.setRenderingHint g2 RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_ON)
+;    (.setRenderingHint g2 RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_OFF)
     (doseq [polygon polygons]
-      (draw-polygon g2 polygon))))
-
-;    (.repaint the-panel)))
+      (draw-polygon g2 polygon)
+    (.repaint the-panel))))
 
 (defn compare-image-to-reference [image]
   (let [int-array (image-as-int-array image)]
