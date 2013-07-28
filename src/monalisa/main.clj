@@ -1,5 +1,5 @@
-(ns monalisa.core
-  "core monalisa code"
+(ns monalisa.main
+  "main monalisa code"
   (:use [monalisa.graphics]))
 
 (def MAX-GENERATIONS 100000)
