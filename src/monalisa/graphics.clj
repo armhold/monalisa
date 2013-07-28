@@ -3,6 +3,7 @@
   (import
     (javax.swing JFrame JLabel JTextField JButton WindowConstants)
     (java.awt.event ActionListener)
+    (java.awt BorderLayout Dimension RenderingHints)
     (java.awt.geom GeneralPath)
     (java.awt.image BufferedImage)
     (java.awt Color)))
@@ -28,8 +29,8 @@
   (let [width  (.getWidth reference-image)
         height (.getHeight reference-image)]
 
-    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
-    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR)))
+    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_4BYTE_ABGR))
+    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_4BYTE_ABGR)))
     (def target-width (.getWidth reference-image))
     (def target-height (.getHeight reference-image))
     (def reference-image-int-array (image-as-int-array reference-image)))
@@ -45,12 +46,15 @@
                   (.drawImage g buffered-image
                     0 0 (.getWidth this) (.getHeight this) nil)))]
     (def the-panel panel) ; surely this is not the proper way to set a "member" field in clojure...
-    (doto (javax.swing.JFrame.)
-      (.setContentPane panel)
+    (.setSize panel (Dimension. target-width target-height))
+    (.setPreferredSize panel (Dimension. target-width target-height))
+    (doto (javax.swing.JFrame. "Annealer")
+      (.add panel BorderLayout/CENTER)
+      (.pack)
       (.setDefaultCloseOperation WindowConstants/EXIT_ON_CLOSE)
-      (.setSize target-width target-height)
       (.setVisible true)
-      (.toFront))))
+      (.toFront)
+      )))
 
 
 (defn to-java-color [color]
@@ -72,6 +76,7 @@
 
 (defn draw-polygon [graphics-2d polygon]
   (.setColor graphics-2d (to-java-color (polygon :color)))
+  (.setRenderingHint graphics-2d RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_ON)
   (.fill graphics-2d (path-from-polygon polygon)))
 
 (defn draw-polygons [polygons image]

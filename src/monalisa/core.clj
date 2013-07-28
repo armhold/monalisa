@@ -3,7 +3,7 @@
   (:use [monalisa.graphics]))
 
 (def MAX-GENERATIONS 100000)
-(def POLYGON-COUNT 50)    ; # of polygons for a given image
+(def POLYGON-COUNT 250)    ; # of polygons for a given image
 (def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
 (def MUTATION-RATE 0.01)
