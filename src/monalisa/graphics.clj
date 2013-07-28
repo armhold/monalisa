@@ -9,8 +9,8 @@
     (java.awt Color)))
 
 ; forward references
-(def buffered-image)
-(def offscreen-image)
+(def buffered-image)  ; for drawing the display output
+(def scratch-image)   ; for drawing the comparison images
 
 (defn image-as-int-array [img]
   (let [raster (.getData img)
@@ -29,11 +29,11 @@
   (let [width  (.getWidth reference-image)
         height (.getHeight reference-image)]
 
-    (def offscreen-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
-    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR)))
+    (def buffered-image (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
+    (def scratch-image  (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
     (def target-width (.getWidth reference-image))
     (def target-height (.getHeight reference-image))
-    (def reference-image-int-array (image-as-int-array reference-image)))
+    (def reference-image-int-array (image-as-int-array reference-image))))
 
 (defn new-buffered-image []
   (BufferedImage. target-width target-height BufferedImage/TYPE_INT_BGR))
@@ -87,8 +87,9 @@
       (.setRenderingHint g2 RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_ON)
 ;    (.setRenderingHint g2 RenderingHints/KEY_ANTIALIASING, RenderingHints/VALUE_ANTIALIAS_OFF)
     (doseq [polygon polygons]
-      (draw-polygon g2 polygon)
-    (.repaint the-panel))))
+      (draw-polygon g2 polygon))))
+
+;    (.repaint the-panel))))
 
 (defn compare-image-to-reference [image]
   (let [int-array (image-as-int-array image)]

@@ -41,10 +41,8 @@
   ([image-width image-height] (vec (into [] (repeatedly POLYGON-COUNT #(random-polygon image-width image-height))))))
 
 (defn evaluate-candidate [polygons]
-;  (let [scratch-image (new-buffered-image)]
-  (let [scratch-image buffered-image]
-    (draw-polygons polygons scratch-image)
-    (compare-image-to-reference scratch-image)))
+  (draw-polygons polygons scratch-image)
+  (compare-image-to-reference scratch-image))
 
 (defn new-individual
   ([] (new-individual (random-polygons)))
@@ -84,14 +82,12 @@
     (mod (+ initial-val (* amount-to-move (random-direction))) max-val)))
 
 (defn nearby-point [point]
-;  (println "nearby-point")
   {
     :x (move-by-random-delta (:x point) POINT-MUTATION-MAX-DISTANCE (image-width))
     :y (move-by-random-delta (:y point) POINT-MUTATION-MAX-DISTANCE (image-height))
   })
 
 (defn nearby-color [color]
-;  (println "nearby-color")
   {
     :r (move-by-random-delta (:r color) COLOR-MUTATION-MAX-DISTANCE 256)
     :g (move-by-random-delta (:g color) COLOR-MUTATION-MAX-DISTANCE 256)
@@ -100,7 +96,6 @@
   })
 
 (defn nearby-alpha [color]
-;  (println "nearby-alpha")
   {
     :r (:r color)
     :g (:g color)
@@ -135,7 +130,6 @@
 (defn possibly-mutate-polygon [polygon]
   (if (< (rand) MUTATION-RATE)
     (do
-;      (println "mutating!")
       (random-polygon (.getWidth buffered-image) (.getHeight buffered-image)))
     polygon))
 
@@ -189,7 +183,6 @@
         random-individual (population (rand-int POPULATION-COUNT))
         best-individual (population index-of-best)
         new-individual (mate best-individual random-individual)]
-;    (println (str "ousting: " index-of-worst))
     (assoc population index-of-worst new-individual)))
 
 (defn run []
@@ -202,7 +195,6 @@
 (defn run2 []
   (loop [n 0 population (create-random-population)]
     (when (< n MAX-GENERATIONS)
-;      (if (= 0 (mod n 100)) (println (str "generation: " n)))
       (println (str "generation: " n))
       (recur (inc n) (new-population-from-mutated-best population (find-best-individual population)))))
   (println "done"))
