@@ -146,10 +146,6 @@
 (defn temperature [generation]
   (- MAX-GENERATIONS generation))
 
-(defn update-display [best-candidate]
-  (draw-polygons (:polygons best-candidate) buffered-image)
-  (.repaint the-panel))
-
 (defn run []
   (loop [generation 0 progenitor (new-individual)]
     (when (< generation MAX-GENERATIONS)
@@ -167,7 +163,7 @@
                              progenitor)
             ]
         (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
-        (update-display best-of-population)
+        (update-display (:polygons best-of-population))
         (recur (inc generation) new-progenitor))))
   (println "done"))
 

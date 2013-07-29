@@ -9,8 +9,8 @@
     (java.awt Color)))
 
 ; forward references
-(def buffered-image)  ; for drawing the display output
-(def scratch-image)   ; for drawing the comparison images
+(def buffered-image)  ; for the display output
+(def scratch-image)   ; for the comparison images
 
 (defn allocate-int-array-for-image [img]
   (let [byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
@@ -40,6 +40,8 @@
 
     ; TODO: must create N of these if we use pmap in the future
     (def scratch-image-int-array (allocate-int-array-for-image scratch-image))
+
+    ; copy reference image data ahead of time since we'll use it for each comparison
     (copy-image-to-int-array reference-image reference-image-int-array)))
 
 
@@ -96,3 +98,7 @@
 (defn compare-image-to-reference [image]
   (copy-image-to-int-array image scratch-image-int-array)
   (reduce + (map difference-squared reference-image-int-array scratch-image-int-array)))
+
+(defn update-display [polygons]
+  (draw-polygons polygons buffered-image)
+  (.repaint the-panel))
