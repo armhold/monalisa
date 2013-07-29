@@ -3,11 +3,10 @@
   (:use [monalisa.graphics]))
 
 (def MAX-GENERATIONS 100000)
-(def POLYGON-COUNT 250)    ; # of polygons for a given image
+(def POLYGON-COUNT 50)    ; # of polygons for a given image
 (def POINTS-PER-POLYGON 6)
 (def POPULATION-COUNT 10)
-(def MUTATION-RATE 0.01)
-(def POINT-MUTATION-MAX-DISTANCE 50)
+(def POINT-MUTATION-MAX-DISTANCE 5)
 (def COLOR-MUTATION-MAX-DISTANCE 5)
 
 (defn random-color []
@@ -103,11 +102,13 @@
     :a (move-by-random-delta (:a color) COLOR-MUTATION-MAX-DISTANCE 256)
   })
 
+; mutate the point at the given index
 (defn mutate-point [points index]
   (vec (assoc points index (nearby-point (points index)))))
 
+; choose a random locus. If the locus is < # of points, we mutate the corresponding point.
+; else we mutate either the color RGB or the color alpha level.
 (defn mutate-polygon [polygon]
-
   (let [points (:points polygon)
         point-count (count points)
         locus (rand-int (+ 2 point-count))
@@ -116,30 +117,10 @@
         color (if (= locus point-count) (nearby-color color) color)
         color (if (= locus (+ 1 point-count)) (nearby-alpha color) color)
         ]
-
-  ; TODO: change only ONE of the following:
-  ; 1. a single point
-  ; 2. polygon color
-  ; 3. polygon alpha
   {
     :points points
     :color color
   }))
-
-
-(defn possibly-mutate-polygon [polygon]
-  (if (< (rand) MUTATION-RATE)
-    (do
-      (random-polygon (.getWidth buffered-image) (.getHeight buffered-image)))
-    polygon))
-
-
-(defn random-mutation-indices [count]
-  [
-    (rand-int (+ count 1))
-    (rand-int (+ count 1))
-    (rand-int (+ count 1))
-  ])
 
 (defn mutate-random-polygon [polygons]
   (let [mutation-index (rand-int (count polygons))
@@ -162,44 +143,6 @@
 (defn new-population-from-progenitor [progenitor]
   (vec (into [] (repeatedly POPULATION-COUNT #(mutate-individual progenitor)))))
 
-; create a new population based on the best individual
-(defn new-population-from-mutated-best [population best-individual]
-  (vec (map (fn [_] (mutate-individual best-individual)) population)))
-
-(defn crossover [parent1-polygons parent2-polygons]
-  (let [crossover (rand-int POLYGON-COUNT)]
-    (loop [n 0 result []]
-      (if (< n POLYGON-COUNT)
-        (recur (inc n) (conj result (possibly-mutate-polygon (nth (if (< n crossover) parent1-polygons parent2-polygons) n))))
-        result))))
-
-(defn mate [parent1 parent2]
-  (new-individual (crossover (:polygons parent1) (:polygons parent2))))
-
-(defn replace-worst [population]
-  (let [scores (map #(:score %) population)
-        index-of-best (find-best-index scores)
-        index-of-worst (find-worst-index scores)
-        random-individual (population (rand-int POPULATION-COUNT))
-        best-individual (population index-of-best)
-        new-individual (mate best-individual random-individual)]
-    (assoc population index-of-worst new-individual)))
-
-(defn run []
-  (loop [n 0 population (create-random-population)]
-    (when (< n MAX-GENERATIONS)
-      (if (= 0 (mod n 100)) (println (str "generation: " n)))
-      (recur (inc n) (replace-worst population))))
-  (println "done"))
-
-(defn run2 []
-  (loop [n 0 population (create-random-population)]
-    (when (< n MAX-GENERATIONS)
-      (println (str "generation: " n))
-      (recur (inc n) (new-population-from-mutated-best population (find-best-individual population)))))
-  (println "done"))
-
-
 (defn temperature [generation]
   (- MAX-GENERATIONS generation))
 
@@ -207,7 +150,7 @@
   (draw-polygons (:polygons best-candidate) buffered-image)
   (.repaint the-panel))
 
-(defn run3 []
+(defn run []
   (loop [generation 0 progenitor (new-individual)]
     (when (< generation MAX-GENERATIONS)
 
@@ -226,20 +169,10 @@
         (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
         (update-display best-of-population)
         (recur (inc generation) new-progenitor))))
-
   (println "done"))
-
-
-
-(defn doit []
-  (init-images)
-  (show-image)
-  (draw-polygons (random-polygons)))
 
 
 (defn -main []
   (init-images)
   (show-image)
-;  (draw-polygons (random-polygons))
-  (run3)
-  )
+  (run))

@@ -89,8 +89,6 @@
     (doseq [polygon polygons]
       (draw-polygon g2 polygon))))
 
-;    (.repaint the-panel))))
-
 (defn compare-image-to-reference [image]
   (let [int-array (image-as-int-array image)]
     (reduce + (map difference-squared reference-image-int-array int-array))))
