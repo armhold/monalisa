@@ -12,11 +12,13 @@
 (def buffered-image)  ; for drawing the display output
 (def scratch-image)   ; for drawing the comparison images
 
-(defn image-as-int-array [img]
-  (let [raster (.getData img)
-        byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
+(defn allocate-int-array-for-image [img]
+  (let [byte-count (* (.getWidth img) (.getHeight img) 3)  ; 3 bytes for RGB
         int-array (int-array byte-count)]
+    int-array))
 
+(defn copy-image-to-int-array [img int-array]
+  (let [raster (.getData img)]
     (.getPixels raster 0 0 (.getWidth img) (.getHeight img) int-array)
     int-array))
 
@@ -33,10 +35,12 @@
     (def scratch-image  (BufferedImage. width height BufferedImage/TYPE_INT_BGR))
     (def target-width (.getWidth reference-image))
     (def target-height (.getHeight reference-image))
-    (def reference-image-int-array (image-as-int-array reference-image))))
+    (def reference-image-int-array (allocate-int-array-for-image reference-image))
 
-(defn new-buffered-image []
-  (BufferedImage. target-width target-height BufferedImage/TYPE_INT_BGR))
+
+    ; TODO: must create N of these if we use pmap in the future
+    (def scratch-image-int-array (allocate-int-array-for-image scratch-image))
+    (copy-image-to-int-array reference-image reference-image-int-array)))
 
 
 (defn show-image []
@@ -90,5 +94,5 @@
       (draw-polygon g2 polygon))))
 
 (defn compare-image-to-reference [image]
-  (let [int-array (image-as-int-array image)]
-    (reduce + (map difference-squared reference-image-int-array int-array))))
+  (copy-image-to-int-array image scratch-image-int-array)
+  (reduce + (map difference-squared reference-image-int-array scratch-image-int-array)))
