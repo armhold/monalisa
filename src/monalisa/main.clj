@@ -144,7 +144,7 @@
   (vec (into [] (repeatedly POPULATION-COUNT #(mutate-individual progenitor)))))
 
 (defn temperature [generation]
-  (- MAX-GENERATIONS generation))
+  (/ generation MAX-GENERATIONS))
 
 (defn run []
   (loop [generation 0 progenitor (new-individual)]
@@ -153,16 +153,16 @@
       (let [population (new-population-from-progenitor progenitor)
             best-of-population (find-best-individual population)
             diff (- (:score progenitor) (:score best-of-population))
-            temp (temperature generation)
-            p  (Math/exp (/ diff temp))
-            chance (rand)
+;            temp (temperature generation)
+;            p  (Math/exp (/ diff temp))
+;            chance (rand)
             new-progenitor (if
-                             (or (< (:score best-of-population) (:score progenitor))
-                                 (< chance p))
+                             (< (:score best-of-population) (:score progenitor))
                              best-of-population
                              progenitor)
             ]
-        (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
+;        (println (str "generation: " generation ", temperature: " temp ", best score: " (:score best-of-population) ", chance: " chance ", p: " p ", chance < p: " (< chance p)))
+        (println (str "generation: " generation))
         (update-display (:polygons best-of-population))
         (recur (inc generation) new-progenitor))))
   (println "done"))
